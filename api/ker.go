@@ -6,8 +6,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"github.com/csvwolf/ker.go/constant"
+	"github.com/csvwolf/ker.go/model"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -17,23 +20,23 @@ type Ker struct {
 	Email     string
 }
 
-func (ker *Ker) sign(body []byte) string {
+func (ker *Ker) Sign(body []byte) string {
 	h := hmac.New(sha256.New, []byte(ker.SecretKey))
 	h.Write(body)
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (ker *Ker) fetch(body map[string]interface{}) (map[string]interface{}, error) {
+func fetch[Input any, Output any](ker *Ker, body *Input) (*Output, error) {
 	var (
 		err          error
 		bodyBytes    []byte
 		req          *http.Request
 		resp         *http.Response
 		responseBody []byte
-		retVal       map[string]interface{}
+		retVal       *model.Response[*Output]
 
 		client = http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: 20 * time.Second,
 		}
 	)
 	if bodyBytes, err = json.Marshal(body); err != nil {
@@ -44,7 +47,7 @@ func (ker *Ker) fetch(body map[string]interface{}) (map[string]interface{}, erro
 		return nil, err
 	}
 	req.Header.Set("Email", ker.Email)
-	req.Header.Set("Sign", ker.sign(bodyBytes))
+	req.Header.Set("Sign", ker.Sign(bodyBytes))
 
 	if resp, err = client.Do(req); err != nil {
 		return nil, err
@@ -56,8 +59,18 @@ func (ker *Ker) fetch(body map[string]interface{}) (map[string]interface{}, erro
 		return nil, err
 	}
 
+	log.Printf("%s\n", responseBody)
+
 	if err = json.Unmarshal(responseBody, &retVal); err != nil {
 		return nil, err
 	}
-	return retVal, nil
+
+	if !retVal.Success {
+		if retVal.Error == "" {
+			return nil, errors.New("unknown Error")
+		}
+		return nil, errors.New(retVal.Error)
+	}
+
+	return retVal.Result, nil
 }
