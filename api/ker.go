@@ -10,7 +10,6 @@ import (
 	"github.com/csvwolf/ker.go/constant"
 	"github.com/csvwolf/ker.go/model"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -58,8 +57,6 @@ func fetch[Input any, Output any](ker *Ker, body *Input) (*Output, error) {
 	if responseBody, err = io.ReadAll(resp.Body); err != nil {
 		return nil, err
 	}
-
-	log.Printf("%s\n", responseBody)
 
 	if err = json.Unmarshal(responseBody, &retVal); err != nil {
 		return nil, err
