@@ -12,5 +12,5 @@ jobs:
         uses: actions/checkout@master
       - name: Release
         uses: go-semantic-release/action@v1
-        env:
+        with:
           github-token: ${{ secrets.TAG_TOKEN }}
