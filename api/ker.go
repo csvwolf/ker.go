@@ -1,3 +1,6 @@
+/*
+API Caller
+*/
 package api
 
 import (
@@ -19,10 +22,19 @@ type Ker struct {
 	Email     string
 }
 
+// Sign 计算签名
 func (ker *Ker) Sign(body []byte) string {
 	h := hmac.New(sha256.New, []byte(ker.SecretKey))
 	h.Write(body)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// New init the Ker instance
+func New(email string, secretKey string) *Ker {
+	return &Ker{
+		SecretKey: secretKey,
+		Email:     email,
+	}
 }
 
 func fetch[Input any, Output any](ker *Ker, body *Input) (*Output, error) {

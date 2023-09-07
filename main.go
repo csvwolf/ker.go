@@ -1,3 +1,6 @@
+/*
+Read Doc in api dir
+*/
 package main
 
 import (
@@ -7,10 +10,7 @@ import (
 )
 
 func main() {
-	ker := &api.Ker{
-		SecretKey: os.Getenv("KER_SECRET_KEY"),
-		Email:     os.Getenv("KER_EMAIL"),
-	}
+	ker := api.New(os.Getenv("KER_EMAIL"), os.Getenv("KER_SECRET_KEY"))
 	res, err := ker.GetDomainList()
 	fmt.Printf("%+v, %+v\n", res, err)
 }
